@@ -65,10 +65,11 @@ def time_count():
     global Am_err
     
     while True:
-        if Am_err == 0 : # Ambient通信不具合発生時は時計の文字が赤くなる
-            fc = lcd.WHITE
-        else :
-            fc = lcd.RED
+        #if Am_err == 0 : # Ambient通信不具合発生時は時計の文字が赤くなる
+        #    fc = lcd.WHITE
+        #else :
+        #    fc = lcd.RED
+        fc = lcd.WHITE
 
         if Disp_mode == 1 : # 表示回転処理
             if m5type == 0 :
@@ -493,6 +494,7 @@ if not wisun_scan_filechk() :
     while not scanOK :
         bp35a1.write("SKSCAN 2 FFFFFFFF " + str(SCAN_COUNT) + "\r\n")
         utime.sleep(0.5)
+        lcd.clear()
         #スキャン1回分のループ処理
         scanEnd = False
         while not scanEnd :
@@ -500,6 +502,7 @@ if not wisun_scan_filechk() :
             if bp35a1.any() != 0 :
                 line = bp35a1.readline()
                 print('*')
+                lcd.clear()
                 if line is not None :
                     if ure.match("EVENT 22" , line.strip()) :
                         print('-')
@@ -527,12 +530,16 @@ if not wisun_scan_filechk() :
                     print(line.strip())
             utime.sleep(0.5)
             gc.collect()
-        
+            lcd.clear()
         SCAN_COUNT+=1
         
         if SCAN_COUNT > 10 :
+            lcd.clear()
+            lcd.print('value error', 0, 0, lcd.WHITE)
             raise ValueError('Scan retry count over! Please Reboot!')
         elif len(channel) == 2 and len(panid) == 4 and len(macadr) == 16 and len(lqi) == 2 :
+            lcd.clear()
+            lcd.print('scan clear', 0, 0, lcd.WHITE)
             with open('/flash/Wi-SUN_SCAN.txt' , 'w') as f:
                 f.write('Channel:' + str(channel) + '\r\n')
                 f.write('Pan_ID:' + str(panid) + '\r\n')
@@ -553,7 +560,7 @@ while True :
         line = None
         if bp35a1.any() != 0 :
             line = bp35a1.readline()
-            print('*')
+            print('*a')
         if line is not None :
             if ure.match('OK' , line.strip()) :
                 break
@@ -565,7 +572,7 @@ while True :
         line = None
         if bp35a1.any() != 0 :
             line = bp35a1.readline()
-            print('*')
+            print('*b')
         if line is not None :
             if ure.match('OK' , line.strip()) :
                 break    
@@ -577,7 +584,7 @@ while True :
         line = None
         if bp35a1.any() != 0 :
             line = bp35a1.readline()
-            print('*')
+            print('*c')
         if line is not None :
             if len(line.strip()) == 39 :
                 ipv6Addr = str(line.strip(), 'utf-8')
@@ -606,7 +613,7 @@ while True :
         line = None
         if bp35a1.any() != 0 :
             line = bp35a1.readline()
-            print('*')
+            print('*d')
             if line is not None :
                 if ure.match("EVENT 24" , line.strip()) :
                     print(">> PANA authentication NG!  ...scan retry")
@@ -712,7 +719,7 @@ am_c = utime.time()
 tp_f = False    # 積算電力量応答の有無フラグ
 
 
-m5mqtt = M5mqtt('m5stickC-Wi-SUN-HAT', '192.168.200.223', 1883, '', '', 300);
+m5mqtt = M5mqtt('m5stickC-Wi-SUN-HAT', '192.168.200.21', 1883, '', '', 300);
 m5mqtt.start()
 
 i=0
@@ -727,7 +734,7 @@ while True:
         if u.type == 'E7' : # [E7]なら受信データは瞬時電力計測値
             data_mute = False
             draw_w()
-            m5mqtt.publish(str('Home/Wi-Sun-Hat/Instant-Energy'), str(u.instant_power[0]))
+            m5mqtt.publish(str('Home/Wi-Sun-Hat/Instant-Energy'), '{}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}'.format(*utime.localtime()[:6])+' '+str(u.instant_power[0]))
             if ESP_NOW_F : # ESP NOW一斉同報発信を使う場合
                 espnow.broadcast(data=str('NPD=' + str(u.instant_power[0])))
             if (utime.time() - am_c) >= am_interval :

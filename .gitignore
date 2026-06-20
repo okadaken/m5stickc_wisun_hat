@@ -1,0 +1,6 @@
+# 実認証情報を含むファイル（デバイスのBルートID・パスワード等）
+wisun_set_m.txt
+
+# デバイスからのダウンロード一時ファイル
+*_from_device.*
+*_from_device
