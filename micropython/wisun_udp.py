@@ -1,6 +1,6 @@
 import ure
 import utime
-from m5stack import *
+from machine import PWM, Pin as _Pin
 
 class udp_read:
 
@@ -34,6 +34,8 @@ class udp_read:
     # UDPデータの解析関数
     def read(self, udp_line):
         self.type = ''
+        if udp_line is None:
+            return
         if ure.match('ERXUDP' , udp_line.strip()) :
             print(udp_line) ####テスト用
             cols = ''
@@ -75,12 +77,14 @@ class udp_read:
                             self.type = 'E7'
                             new_power = int(res[-8:] , 16)
                             if self.instant_power[0] + 200 < new_power:
-                                speaker.setVolume(10)
-                                speaker.tone(1800, 500)
+                                _spk = PWM(_Pin(2), freq=1800, duty=512)
+                                utime.sleep_ms(500)
+                                _spk.deinit()
                                 print("A")
                             if self.instant_power[0] - 200 > new_power:
-                                speaker.setVolume(10)
-                                speaker.tone(1000, 500)
+                                _spk = PWM(_Pin(2), freq=1000, duty=512)
+                                utime.sleep_ms(500)
+                                _spk.deinit()
                                 print("B")
                             self.instant_power[0] = new_power
                             #self.instant_power[0] = int(res[-8:] , 16)
