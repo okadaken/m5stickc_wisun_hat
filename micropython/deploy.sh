@@ -16,8 +16,9 @@ SECRETS=(
 usage() {
     echo "Usage: $0 [options]"
     echo "  -a           全ファイルを転送してリセット"
-    echo "  -m           main.py のみ転送（-l と併用可）"
-    echo "  -l           lib/*.py のみ転送（-m と併用可）"
+    echo "  -m           main.py のみ転送（-l/-w と併用可）"
+    echo "  -w           wisun_udp.py のみ転送（-m/-l と併用可）"
+    echo "  -l           lib/*.py のみ転送（-m/-w と併用可）"
     echo "  -s           シークレット(wisun_set_m.txt)も転送"
     echo "  -n           転送後にリセットしない"
     echo "  -r           リセットのみ（転送なし）"
@@ -27,6 +28,7 @@ usage() {
 
 do_reset=true
 only_main=false
+only_wisun=false
 only_lib=false
 only_all=false
 only_reset=false
@@ -36,10 +38,11 @@ if [ $# -eq 0 ]; then
     usage
 fi
 
-while getopts "amlsnrh" opt; do
+while getopts "amwlsnrh" opt; do
     case $opt in
         a) only_all=true ;;
         m) only_main=true ;;
+        w) only_wisun=true ;;
         l) only_lib=true ;;
         s) with_secrets=true ;;
         n) do_reset=false ;;
@@ -76,6 +79,9 @@ if $only_all; then
 else
     if $only_main; then
         transfer main.py :/main.py
+    fi
+    if $only_wisun; then
+        transfer wisun_udp.py :/wisun_udp.py
     fi
     if $only_lib; then
         transfer lib/st7789.py :/lib/st7789.py
