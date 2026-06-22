@@ -644,7 +644,7 @@ while True:
             collect_day += 10
             if collect_day > 30:
                 collect_day = 10
-                i = 0
+                i = 2  # 次サイクルで i=3(E2取得) が実行されるよう調整
             POWER_W = b'\x10\x81\x00\x01\x05\xFF\x01\x02\x88\x01\x61\x01\xE5\x01' + bytes([collect_day])
             command = bytes('SKSENDTO 1 {0} 0E1A 1 {1:04X} '.format(ipv6Addr, len(POWER_W)), 'utf-8')
             bp35a1.write(command)

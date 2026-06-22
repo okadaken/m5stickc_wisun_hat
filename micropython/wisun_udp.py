@@ -54,9 +54,10 @@ class udp_read:
                     days = int(res[30:30 + 2], 16)
                     power = int(res[32:32 + 8],16) * self.power_coefficient * self.power_unit
                     power2 = self.total_power[0] - power
-                    _price = self.calTepco(int(power2))
-                    self.price[days] = _price
-                    print('-- 積算電力量計測値履歴１ E2 result -- days:' + str(days) + ' 料金:' + str(_price) + '円 計算電力量:' + str(power2) +'kWh')
+                    if self.total_power[0] != 0 and power2 > 0:
+                        _price = self.calTepco(int(power2))
+                        self.price[days] = _price
+                        print('-- 積算電力量計測値履歴１ E2 result -- days:' + str(days) + ' 料金:' + str(_price) + '円 計算電力量:' + str(power2) +'kWh')
                 if ure.match(esv,'72') and ure.match(epc,'E8'):
                     r = int(res[-8:-4], 16)
                     if r == 0x7ffe:
