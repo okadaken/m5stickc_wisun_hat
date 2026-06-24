@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+PORT=${MPREMOTE_PORT:-/dev/ttyUSB0}
 SRC=.
 FILES=(
     "boot.py       :/boot.py"
@@ -57,19 +58,19 @@ echo "=== M5StickC PLUS deploy ==="
 
 if $only_reset; then
     echo "  reset..."
-    mpremote reset
+    mpremote connect "${PORT}" reset
     echo "=== done ==="
     exit 0
 fi
 
 # /lib ディレクトリが存在しない場合だけ作成（エラーは無視）
-mpremote exec "import uos; uos.mkdir('/lib')" 2>/dev/null || true
+mpremote connect "${PORT}" exec "import uos; uos.mkdir('/lib')" 2>/dev/null || true
 
 transfer() {
     local src="$1"
     local dst="$2"
     echo "  cp ${src} → ${dst}"
-    mpremote cp "${src}" "${dst}"
+    mpremote connect "${PORT}" cp "${src}" "${dst}"
 }
 
 if $only_all; then
@@ -97,7 +98,7 @@ fi
 
 if $do_reset; then
     echo "  reset..."
-    mpremote reset
+    mpremote connect "${PORT}" reset
 fi
 
 echo "=== done ==="
