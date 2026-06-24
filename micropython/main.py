@@ -37,7 +37,8 @@ _rotation_changed = False
 _last_btn_b_ms    = 0
 m5type      = 0     # M5StickC固定
 np_interval = 5
-TIMEOUT     = 30
+TIMEOUT        = 30
+RESTART_TIMEOUT = 300   # E7未受信でこの秒数(5分)経過後に自動再起動
 AMPERE_RED  = 0.7
 AMPERE_LIMIT = 30
 
@@ -594,6 +595,7 @@ print('>> Time Count thread ON')
 np_c = utime.time()
 tp_c = utime.time()
 tp_f = False
+last_e7_time = utime.time()
 
 # MQTT接続
 mqtt = MQTTClient('m5stickC-Wi-SUN-HAT', '192.168.200.21', 1883)
@@ -608,8 +610,12 @@ while True:
     if bp35a1.any() != 0:
         line = bp35a1.readline()
         if line is not None:
+            if ure.match("EVENT 27", line.strip()):
+                print('>> PANA session terminated (EVENT 27)! Restarting...')
+                machine.reset()
             u.read(line)
         if u.type == 'E7':
+            last_e7_time = utime.time()
             data_mute = False
             draw_w()
             t = localtime_jst()
@@ -709,6 +715,10 @@ while True:
         finally:
             _lcd_lock.release()
         draw_w()
+
+    if utime.time() - last_e7_time > RESTART_TIMEOUT:
+        print('>> No E7 for {}s, restarting...'.format(RESTART_TIMEOUT))
+        machine.reset()
 
     utime.sleep(0.1)
     gc.collect()
